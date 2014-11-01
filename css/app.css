@@ -1,0 +1,23 @@
+body {
+  background-color:#515151;
+  margin-left:100px;
+}
+.litleImages{
+  width: 133px;
+  height: 100px;
+  margin-left:40px;
+  /*float:left;*/
+}
+
+.video{
+  float:left;
+}
+
+#countdownTimer{
+  font-size:80px;
+  color:white;
+}
+
+#canvas {
+  margin-left:20px;
+}

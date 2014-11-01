@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en" ng-app>
+<head>
+  <meta charset="utf-8">
+  <title>Photobooth</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="js/jquery-2.1.1.min.js"></script>
+  <script>
+    // Put event listeners into place
+    photoIndex = 0;
+    active = false;
+  window.addEventListener("DOMContentLoaded", function() {
+  
+  
+	// Grab elements, create settings, etc.
+	  canvas = document.getElementById("canvas"),
+		context = canvas.getContext("2d"),
+    
+		video = document.getElementById("video"),
+		videoObj = { "video": true },
+    countdown = document.getElementById("countdownTimer"),
+		errBack = function(error) {
+			console.log("Video capture error: ", error.code); 
+		};
+
+
+	// Put video listeners into place
+	if(navigator.getUserMedia) { // Standard
+		navigator.getUserMedia(videoObj, function(stream) {
+			video.src = stream;
+			video.play();
+		}, errBack);
+	} else if(navigator.webkitGetUserMedia) { // WebKit-prefixed
+		navigator.webkitGetUserMedia(videoObj, function(stream){
+			video.src = window.webkitURL.createObjectURL(stream);
+			video.play();
+		}, errBack);
+	}
+	else if(navigator.mozGetUserMedia) { // Firefox-prefixed
+		navigator.mozGetUserMedia(videoObj, function(stream){
+			video.src = window.URL.createObjectURL(stream);
+			video.play();
+		}, errBack);
+	}
+  
+  
+  
+  var doCountdown = function(){
+    if('done' != photoIndex){  
+      
+      countdown.innerHTML = 'Get Ready! 3';
+      
+      setTimeout(function(){
+          countdown.innerHTML = 'Get Ready! 2';
+      }, 1000);
+      
+      setTimeout(function(){
+        countdown.innerHTML = 'Get Ready! 1';
+      }, 2000);
+      
+      setTimeout(function(){
+        photoIndex = takePhotos();
+          doCountdown();
+        
+      }, 3000);
+      
+    }
+    else{
+      //pictures are done!
+      countdown.innerHTML = "Enter your EMAIL!";
+      setTimeout(function(){
+            getEmail();
+        }, 500);
+      
+    }
+  }
+  
+  
+  getEmail = function(){
+    var email = prompt('Enter your email address and these pics will be sent to you!', '');
+    savePics(email);
+    
+    
+    refreshEverything();
+  }
+  
+  savePics = function(email){
+    img1 = document.getElementById('canvasImg0').src;
+    img2 = document.getElementById('canvasImg1').src;
+    img3 = document.getElementById('canvasImg2').src;
+    img4 = document.getElementById('canvasImg3').src;
+    
+    $.ajax({
+      url:"upload.php",
+      type: 'POST',
+      data: {
+        email: email,
+        img1: img1,
+        img2: img2,
+        img3: img3,
+        img4: img4
+      },
+      success:function(result){
+        console.log(result)
+      }
+    });
+  }
+  
+  refreshEverything = function(){
+    countdown.innerHTML = 'Press any key to Start Photobooth!';
+    for(var i = 0; i < 4; i++){
+      document.getElementById('canvasImg'+i).src = '';
+    }
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    photoIndex = 0;
+    active = false;
+  }
+  
+  var takePhotos = function(){
+    context.drawImage(video, 0, 0, 640, 480);
+    var dataURL = canvas.toDataURL('image/jpeg');
+    
+    function setPhotoToImg(index, dataURL){
+      
+      document.getElementById('canvasImg'+index).src = dataURL;
+      
+    }
+    
+    
+    //find the next empty image box
+    for(var i = 0; i < 4; i++){
+      var srcLength = document.getElementById('canvasImg'+i).src.length;
+      if (0 == srcLength || srcLength < 30) {
+        document.body.style.backgroundColor = 'white';
+        setTimeout(function(){
+            document.body.style.backgroundColor = '#515151';
+        }, 100);
+        setPhotoToImg(i, dataURL);
+        var returnVal = (3 == i) ? 'done' : i;
+        return returnVal;
+      }
+      
+    }
+    
+    
+  }
+  
+  
+  document.addEventListener('keydown', function(event) {
+    if (!active) {
+      active = true;
+      doCountdown();
+    }
+  });
+  
+  
+  
+}, false);
+
+
+  </script>
+</head>
+<body>
+<!--<button id="snap">Start Photobooth!</button> -->
+<div id="countdownTimer">Press any key to Start Photobooth!</div>
+  <video id="video" width="640" height="480" class="video" autoplay></video>
+  
+
+<canvas style="display:none;" id="canvas" width="640" height="480"></canvas>
+<br>
+<img id="canvasImg0" class="litleImages" alt="pic 1">
+  <br>
+  <img id="canvasImg1" class="litleImages" alt="pic 2">
+    <br>
+  <img id="canvasImg2" class="litleImages" alt="pic 3">
+    <br>
+    <img id="canvasImg3" class="litleImages" alt="pic 4">
+
+
+</body>
+</html>
