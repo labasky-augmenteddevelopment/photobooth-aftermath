@@ -1,7 +1,9 @@
 <?php
 
-
+//ini_set ("display_errors", "1");
+//error_reporting(E_ALL);
 include('mysql-connect.php');
+
 
 function generateStrip ($id){
       $jpg_image = imagecreatefromjpeg('edited/white_box.jpg');
